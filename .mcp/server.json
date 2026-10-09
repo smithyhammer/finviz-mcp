@@ -1,0 +1,29 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "description": "MCP server for the Finviz Elite export API: stock screener, price history, news, group performance and portfolios.",
+  "name": "io.github.<your GitHub username here>/finviz-mcp-server",
+  "version": "0.1.0-beta",
+  "packages": [
+    {
+      "registryType": "nuget",
+      "identifier": "FinvizMcpServer",
+      "version": "0.1.0-beta",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [],
+      "environmentVariables": [
+        {
+          "name": "FINVIZ_API_KEY",
+          "description": "Finviz Elite API token",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ],
+  "repository": {
+    "url": "https://github.com/<your GitHub username here>/finviz-mcp-server",
+    "source": "github"
+  }
+}
