@@ -1,0 +1,8 @@
+# Allowlist: only send source needed for the build (keeps secrets like finviz_notes.txt / .env out of the context).
+*
+!FinvizMcpServer.csproj
+!Program.cs
+!Finviz/
+!Tools/
+!.mcp/
+!README.md

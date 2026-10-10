@@ -55,6 +55,32 @@ Or publish a self-contained single-file executable and point `command` at it:
 dotnet publish -c Release -r win-x64 -o publish
 ```
 
+## Run in Docker
+
+The image is a self-contained single-file build on a chiseled (distroless, non-root) Ubuntu base, about 130 MB.
+
+```powershell
+docker build -t finviz-mcp-server .
+# Multi-arch: docker buildx build --platform linux/amd64,linux/arm64 -t <registry>/finviz-mcp-server --push .
+```
+
+The server talks MCP over stdio, so the client launches the container itself. Pass `-i` and leave out `-t`, which would corrupt the stream:
+
+```json
+{
+  "mcpServers": {
+    "finviz": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "-e", "FINVIZ_API_KEY", "finviz-mcp-server"],
+      "env": { "FINVIZ_API_KEY": "<your token>" }
+    }
+  }
+}
+```
+
+`-e FINVIZ_API_KEY` with no value forwards the variable from the client's environment, so the token never appears in the
+`docker run` command line.
+
 ## Pack as a NuGet MCP server
 
 ```powershell
