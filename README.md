@@ -63,6 +63,22 @@ dotnet run
 }
 ```
 
+Clients don't need to list both `application/json` and `text/event-stream` in the `Accept` header, which the
+MCP spec otherwise requires:
+
+| `Accept` header on POST | Response |
+| --- | --- |
+| Includes `text/event-stream` | SSE stream (`text/event-stream`), as the spec defines |
+| `application/json`, `*/*`, or no header | The JSON-RPC response as a plain `application/json` body |
+
+In plain JSON mode, any notifications sent before the response (such as log messages) are dropped. Notifications you
+POST still get `202 Accepted`. This makes the server easy to call from curl or scripts:
+
+```powershell
+curl.exe -s http://localhost:8000/mcp -H "Content-Type: application/json" `
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"finviz_get_price_history","arguments":{"ticker":"AAPL","limit":5}}}'
+```
+
 For clients that only support the older HTTP+SSE transport, use `MCP_TRANSPORT=sse`. This also serves
 `GET /mcp/sse` and `POST /mcp/message`. The SDK marks legacy SSE as obsolete because it has no backpressure, so use it
 only with trusted clients.

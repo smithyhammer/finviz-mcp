@@ -3,6 +3,7 @@
 !FinvizMcpServer.csproj
 !Program.cs
 !Finviz/
+!Http/
 !Tools/
 !.mcp/
 !README.md

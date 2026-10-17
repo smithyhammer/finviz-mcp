@@ -1,4 +1,5 @@
 using FinvizMcpServer.Finviz;
+using FinvizMcpServer.Http;
 using FinvizMcpServer.Tools;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -49,6 +50,11 @@ switch (transport)
 
         var app = builder.Build();
         app.Urls.Add($"http://{host}:{port}");
+        // Lets clients POST without listing both application/json and text/event-stream in Accept.
+        app.UseWhen(
+            ctx => ctx.Request.Path.Equals("/mcp", StringComparison.OrdinalIgnoreCase) ||
+                   ctx.Request.Path.Equals("/mcp/", StringComparison.OrdinalIgnoreCase),
+            branch => branch.UseMiddleware<McpAcceptHeaderMiddleware>());
         app.MapMcp("/mcp");
         await app.RunAsync();
         return 0;
