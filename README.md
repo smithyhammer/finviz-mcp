@@ -9,14 +9,27 @@ A [Model Context Protocol](https://modelcontextprotocol.io) server (C# / .NET 10
 
 | Tool | Finviz endpoint | Description |
 | --- | --- | --- |
-| `finviz_screen_stocks` | `export.ashx` | Run the screener with Finviz filter codes (`f=`), view (`v=`), sort (`o=`), custom columns (`c=`), signal (`s=`), tickers (`t=`) |
-| `finviz_get_premarket_movers` | `export.ashx` | Biggest pre-market / after-hours gainers or losers by % change, with liquidity filters (min price, min average volume) |
-| `finviz_get_price_history` | `quote_export.ashx` | OHLCV candles; timeframes `i1,i3,i5,i15,i30,h,d,w,m` |
-| `finviz_get_news` | `news_export.ashx` | News headlines, optionally per ticker |
-| `finviz_get_group_performance` | `grp_export.ashx` | Sector / industry / country / capitalization stats |
-| `finviz_get_portfolio` | `portfolio_export.ashx` | Export one of your portfolios |
+| `finviz_screen_stocks` | `/export` | Run the screener with Finviz filter codes (`f=`), view (`v=`), sort (`o=`), custom columns (`c=`), signal (`s=`), tickers (`t=`) |
+| `finviz_get_premarket_movers` | `/export` | Biggest pre-market / after-hours gainers or losers by % change, with liquidity filters (min price, min average volume) |
+| `finviz_get_price_history` | `/quote_export` | OHLCV candles; timeframes `i1,i3,i5,i15,i30,h,d,w,m` |
+| `finviz_get_news` | `/news_export` | News headlines, optionally per ticker |
+| `finviz_get_group_performance` | `/grp_export` | Sector / industry / country / capitalization stats |
+| `finviz_get_portfolio` | `/portfolio_export` | Export one of your portfolios |
 
 All tools return CSV text (header row + data rows) and take a `limit` argument to cap rows.
+
+The legacy `*.ashx` paths (e.g. `export.ashx`) still work but now 301-redirect to these extensionless paths. Finviz's
+**API and Exports** dashboard (account menu → *API and Exports*) generates request URLs for each product and shows your usage.
+
+## Rate limits
+
+Finviz Elite allows **10 requests per rolling 5-second window**, shared across all Export/API endpoints on the account
+(including other scripts or apps that use the same token). When you exceed it, Finviz returns HTTP 429 with
+`Retry-After: 5`. Rejected requests don't count against the limit.
+
+The server throttles requests on its side to stay within the budget. If Finviz still returns 429, for example because
+another app is using the same token, the server waits for the `Retry-After` delay and tries again, up to 3 attempts in
+total, before returning an error.
 
 ## Configuration
 

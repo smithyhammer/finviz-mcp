@@ -67,6 +67,14 @@ try {
     Show 'invalid ticker (expect error)' (Tool 'finviz_get_price_history' @{ ticker = 'AAPL;evil' })
     Show 'invalid timeframe (expect error)' (Tool 'finviz_get_price_history' @{ ticker = 'AAPL'; timeframe = 'x' })
     Show 'invalid filter chars (expect error)' (Tool 'finviz_screen_stocks' @{ filters = 'cap_large&auth=x' })
+    Show 'unknown portfolio (expect "Portfolio not found." error)' (Tool 'finviz_get_portfolio' @{ portfolioId = '1' })
+
+    # Finviz allows 10 requests per rolling 5 s; a 12-call burst should be throttled client-side, not fail with 429.
+    $sw = [Diagnostics.Stopwatch]::StartNew()
+    $failed = 0
+    1..12 | ForEach-Object { $r = Tool 'finviz_get_group_performance' @{ group = 'sector'; limit = 1 }; if ($r.result.isError) { $failed++ } }
+    Write-Host "=== rate-limit burst (12 calls) ===" -ForegroundColor Cyan
+    Write-Host "[$(if ($failed) { "$failed failed" } else { 'ok' })] elapsed $([int]$sw.Elapsed.TotalSeconds)s"
 }
 finally {
     if (-not $p.HasExited) { $p.Kill() }

@@ -20,6 +20,9 @@ builder.Services.Configure<FinvizOptions>(o =>
     o.BaseUrl = config["FINVIZ_BASE_URL"] ?? config["Finviz:BaseUrl"] ?? o.BaseUrl;
 });
 
+// One limiter for the whole process: Finviz's rate limit is per account, across all endpoints.
+builder.Services.AddSingleton<FinvizRateLimiter>();
+
 builder.Services.AddHttpClient<FinvizClient>((sp, http) =>
 {
     var options = sp.GetRequiredService<IOptions<FinvizOptions>>().Value;
