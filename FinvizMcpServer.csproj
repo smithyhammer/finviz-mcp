@@ -22,7 +22,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageId>FinvizMcpServer</PackageId>
     <PackageVersion>0.1.0-beta</PackageVersion>
-    <PackageTags>AI; MCP; server; stdio; finviz; stocks</PackageTags>
+    <PackageTags>AI; MCP; server; stdio; http; finviz; stocks</PackageTags>
     <Description>An MCP server exposing the Finviz Elite export API (screener, price history, news, groups, portfolios).</Description>
   </PropertyGroup>
 
@@ -36,6 +36,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.12" />
     <PackageReference Include="ModelContextProtocol" Version="2.2.0" />
+    <PackageReference Include="ModelContextProtocol.AspNetCore" Version="2.2.0" />
   </ItemGroup>
 
 </Project>

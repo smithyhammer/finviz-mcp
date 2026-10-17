@@ -1,6 +1,6 @@
 # Finviz MCP Server
 
-A [Model Context Protocol](https://modelcontextprotocol.io) server (C# / .NET 10, stdio transport) that exposes the
+A [Model Context Protocol](https://modelcontextprotocol.io) server (C# / .NET 10, stdio or HTTP transport) that exposes the
 [Finviz Elite](https://finviz.com/elite) CSV export API as MCP tools.
 
 > Requires a **Finviz Elite** subscription. Your API token is on your Finviz account page.
@@ -37,8 +37,40 @@ total, before returning an error.
 | --- | --- |
 | `FINVIZ_API_KEY` | **Required.** Finviz Elite API token (also accepted as `Finviz:ApiKey`) |
 | `FINVIZ_BASE_URL` | Optional. Defaults to `https://elite.finviz.com/` |
+| `MCP_TRANSPORT` | Optional. `stdio` (default), `http` (Streamable HTTP), or `sse` (Streamable HTTP plus the legacy HTTP+SSE endpoints) |
+| `MCP_HOST` | HTTP only. Interface to listen on. Defaults to `127.0.0.1` (`0.0.0.0` in the Docker image) |
+| `MCP_PORT` | HTTP only. Defaults to `8000` |
+| `MCP_ALLOWED_HOSTS` | HTTP only. Semicolon-separated `Host` header values to accept. Defaults to `localhost;127.0.0.1;[::1]` |
 
 The token is sent as the `auth` query parameter. HttpClient logging is disabled so it never appears in logs.
+
+## HTTP transport
+
+Set `MCP_TRANSPORT=http` to run the server as a long-lived process that clients connect to over
+[Streamable HTTP](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports#streamable-http):
+
+```powershell
+$env:MCP_TRANSPORT = "http"
+dotnet run
+# MCP endpoint: http://127.0.0.1:8000/mcp
+```
+
+```json
+{
+  "mcpServers": {
+    "finviz": { "type": "http", "url": "http://localhost:8000/mcp" }
+  }
+}
+```
+
+For clients that only support the older HTTP+SSE transport, use `MCP_TRANSPORT=sse`. This also serves
+`GET /mcp/sse` and `POST /mcp/message`. The SDK marks legacy SSE as obsolete because it has no backpressure, so use it
+only with trusted clients.
+
+> **The HTTP endpoint has no authentication.** Anyone who can reach it can use your Finviz token and its shared rate
+> limit. Keep it on localhost, which is the default. Requests whose `Host` header isn't local are rejected (HTTP 400),
+> which blocks DNS-rebinding attacks from web pages. If you expose it beyond localhost, put an authenticating reverse
+> proxy in front and set `MCP_ALLOWED_HOSTS` to the hostname clients use.
 
 ## Build & run
 
@@ -70,7 +102,7 @@ dotnet publish -c Release -r win-x64 -o publish
 
 ## Run in Docker
 
-The image is a self-contained single-file build on a chiseled (distroless, non-root) Ubuntu base, about 130 MB.
+The image is a self-contained single-file build on a chiseled (distroless, non-root) Ubuntu base, about 170 MB.
 
 ```powershell
 docker build -t finviz-mcp-server .
@@ -93,6 +125,17 @@ The server talks MCP over stdio, so the client launches the container itself. Pa
 
 `-e FINVIZ_API_KEY` with no value forwards the variable from the client's environment, so the token never appears in the
 `docker run` command line.
+
+To run it as a background HTTP service instead, publish the port on localhost only:
+
+```powershell
+$env:FINVIZ_API_KEY = "<your token>"
+docker run -d --name finviz-mcp --restart unless-stopped -p 127.0.0.1:8000:8000 `
+  -e MCP_TRANSPORT=http -e FINVIZ_API_KEY finviz-mcp-server
+```
+
+Clients then connect to `http://localhost:8000/mcp`. Binding to `127.0.0.1` on the host is important because the
+endpoint has no authentication. `-p 8000:8000` would expose it to your whole network.
 
 ## Pack as a NuGet MCP server
 

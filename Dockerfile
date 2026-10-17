@@ -16,5 +16,9 @@ FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled
 WORKDIR /app
 COPY --from=build /app/FinvizMcpServer ./
 
-# MCP over stdio: run with `docker run -i` so the client can talk on stdin/stdout.
+# Default is MCP over stdio: run with `docker run -i` so the client can talk on stdin/stdout.
+# For HTTP, set MCP_TRANSPORT=http and publish the port, e.g. `-p 127.0.0.1:8000:8000`.
+# MCP_HOST only applies in HTTP mode; inside a container the server must listen on all interfaces.
+ENV MCP_HOST=0.0.0.0
+EXPOSE 8000
 ENTRYPOINT ["./FinvizMcpServer"]
